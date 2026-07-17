@@ -44,6 +44,7 @@ main{padding:8px 12px}
 .ex.done .nm{color:var(--muted); text-decoration:line-through}
 .ex input[type=text]{width:74px; background:var(--card2); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:8px 6px; font-size:13px; text-align:center}
 .ex input[type=text]::placeholder{color:#5a6b7d}
+.tmr{display:inline-block; margin-top:6px; padding:6px 12px; border-radius:16px; background:var(--card2); border:1px solid var(--accent); color:var(--accent); font-size:12.5px; font-weight:700; cursor:pointer}
 label.fl{display:block; color:var(--muted); font-size:12px; margin:10px 0 4px; font-weight:600}
 input.big, textarea.big{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--text); padding:12px; font-size:15px; font-family:inherit}
 textarea.big{min-height:64px; resize:vertical}
@@ -132,7 +133,7 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
       <div class="chip" onclick="startDead()">▶ Dead hangs (série completa)</div>
       <div class="chip" onclick="startRep()">▶ Repeaters 7/3</div>
     </div>
-    <div class="alert">Pegada aberta ou semiaberta. Nada de crimp fechado, monodedos ou campus. <b>Dor nos dedos = parar e regredir uma semana no protocolo.</b></div>
+    <div class="alert">Pegada aberta ou semiaberta. Nada de crimp fechado, monodedo, bidedo ou cristal. <b>Dor nos dedos = parar e regredir uma semana no protocolo.</b></div>
   </div>
   <div class="card">
     <h2>Exercícios <span id="excount" style="color:var(--muted);font-size:13px;font-weight:400"></span></h2>
@@ -203,13 +204,24 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
 
 <section id="v-plano" class="hide">
   <div class="card"><h2>Visão geral</h2><div class="note">
-    <b>Preparação:</b> 13/07 a 07/08 — 3 treinos/semana (seg A · qua B · sex C).<br>
+    <b>Preparação:</b> 13/07 a 07/08 — 5 treinos/semana:<br>
+    seg <b>A</b> (academia) · ter <b>D</b> (aeróbico + core + mobilidade) · qua <b>B</b> (fingerboard + tração) · qui <b>descanso ativo</b> · sex <b>C</b> (tração pesada) · sáb <b>E</b> (antagonistas + panturrilhas) · dom <b>descanso</b>.<br>
+    Padrão 3 on / 1 off / 2 on / 1 off — a quinta separa o fingerboard da tração pesada (48 h para os dedos).<br><br>
     <b>Fase 1 (sem. 1-2):</b> adaptação, RPE 6-7. Reacostumar tecidos, não bater recordes.<br>
     <b>Fase 2 (sem. 3-4):</b> +5-10% de carga quando completar tudo com boa técnica; barra fixa com 2 s de pausa no topo; suspensão 3×45 s no dia C.<br>
-    <b>Agosto:</b> seg A (manutenção) · qua B (principal estímulo de dedos) · escalada 1x no fim de semana.<br><br>
-    <b>Regra de ouro:</b> dor articular ou nos dedos = parar. Desconforto muscular é normal; dor aguda em polia, punho ou ombro não é.
+    <b>Sem. 4:</b> C de sex 07/08 com volume reduzido (~metade) — véspera da 1ª escalada.<br>
+    <b>Agosto:</b> escalada no fim de semana substitui o Dia E; sex (C) reduzido ou descanso ativo conforme fadiga.<br><br>
+    <b>Regra de ouro:</b> dor articular ou nos dedos = parar. Desconforto muscular é normal; dor aguda em polia, punho ou ombro não é.<br>
+    <b>Se surgir dor:</b> os primeiros dias a cortar são D e E — o núcleo A-B-C tem prioridade.
   </div></div>
-  <div class="card"><h2>Progressão do fingerboard</h2><div class="note" id="fbtab"></div></div>
+  <div class="card"><h2>Progressão do fingerboard (GoUp)</h2><div class="note" id="fbtab"></div></div>
+  <div class="card"><h2>Adaptação da sapatilha</h2><div class="note">
+    Pé também destreina: pele, dedos e tolerância ao aperto voltam aos poucos.<br><br>
+    <b>Sem. 1-2:</b> 10 min por dia nos dias D e E — em pé, caminhando em casa, subindo num degrau.<br>
+    <b>Sem. 3-4:</b> 15 min, incluindo ficar na ponta dos pés num degrau ou apoio pequeno.<br>
+    <b>Agosto:</b> o pé chega acostumado; na via, tire a sapatilha entre as tentativas.<br><br>
+    Use o timer ▶ no exercício. Dormência ou dor aguda = tirar na hora; desconforto de aperto é normal.
+  </div></div>
   <div class="card"><h2>Sinais de alerta</h2><div class="note">
     • Dor na base dos dedos ao apertar agarras → possível polia: pare e descanse 1 semana.<br>
     • Dor no cotovelo → reduza tração, reforce extensores de punho.<br>
@@ -238,9 +250,11 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
   <div class="wrap hide" id="w-tipo">
     <h1>O que você fez?</h1>
     <button class="wbtn" onclick="regTipo('A')">Dia A · academia</button>
-    <button class="wbtn" onclick="regTipo('B')">Dia B · casa</button>
-    <button class="wbtn" onclick="regTipo('C')">Dia C</button>
-    <button class="wbtn orange" onclick="regTipo('E')">🧗 Escalada</button>
+    <button class="wbtn" onclick="regTipo('D')">Dia D · aeróbico/core</button>
+    <button class="wbtn" onclick="regTipo('B')">Dia B · fingerboard</button>
+    <button class="wbtn" onclick="regTipo('E')">Dia E · antagonistas</button>
+    <button class="wbtn" onclick="regTipo('C')">Dia C · tração</button>
+    <button class="wbtn orange" onclick="regTipo('ESC')">🧗 Escalada</button>
     <button class="wbtn small" onclick="wshow('w-home')">← voltar</button>
   </div>
 
@@ -299,45 +313,68 @@ const SB_TABLE = 'treinos';
 // ===================== DADOS DO PLANO =====================
 const START = new Date(2026,6,13);      // 13/07/2026 (plano reiniciado)
 const CLIMB_START = new Date(2026,7,8); // 08/08/2026
-const WORKOUTS = {
- A:{nome:'Dia A — Academia: força geral + antagonistas', ex:[
-   ['Aquecimento (esteira/bike + mobilidade)','10 min','Obrigatório',0],
-   ['Agachamento ou leg press','3 × 10','Carga confortável',1],
-   ['Levantamento terra romeno','3 × 8','Técnica antes de carga',1],
-   ['Supino ou flexão de braço','3 × 10','Antagonista de tração',1],
-   ['Desenvolvimento de ombros','3 × 10','Halteres',1],
-   ['Remada baixa','3 × 10','',1],
-   ['Extensão de punho com halter leve','3 × 15','Prevenção de epicondilite',1],
-   ['Rotação externa de ombro (elástico)','3 × 15','Saúde do manguito',0],
-   ['Prancha','3 × 30-45 s','',0]]},
- B:{nome:'Dia B — Casa: fingerboard + tração + core', ex:[
-   ['Aquecimento geral + mãos e antebraços','10 min','Abrir/fechar mãos, punhos',0],
-   ['Fingerboard (protocolo da semana)','ver acima','Use os timers ▶',0],
-   ['Barra fixa (ou negativas)','3 × máx−2','Pare 2 reps antes da falha',0],
-   ['Hollow body','3 × 20-30 s','',0],
-   ['Superman','3 × 15','Lombar',0],
-   ['Alongamento de antebraços','5 min','',0]]},
- C:{nome:'Dia C — Tração, resistência e mobilidade', ex:[
-   ['Aquecimento','10 min','',0],
-   ['Barra fixa ou puxada alta','4 × 6-8','',1],
-   ['Remada curvada','3 × 10','',1],
-   ['Flexão de braço','3 × 10-15','',0],
-   ['Afundo','3 × 10/perna','Pernas fortes poupam os braços na via',1],
-   ['Suspensão na barra (tempo)','3 × 30 s','Pegada aberta · Fase 2: 3 × 45 s',0],
-   ['Mobilidade de quadril e ombro','10 min','Essencial para escalada',0]]}
-};
-const FB = {
- 1:{p:'Dead hang 5 × 10 s', a:'Barra ou jug', c:'Pés apoiados (50-70% do peso)', sets:5, mode:'dead'},
- 2:{p:'Dead hang 6 × 10 s', a:'Regletes grandes (≥ 30 mm)', c:'Pés apoiados ou elástico', sets:6, mode:'dead'},
- 3:{p:'Dead hang 6 × 10 s', a:'Regletes 20-25 mm', c:'Assistência leve, RPE ≤ 7', sets:6, mode:'dead'},
- 4:{p:'Repeaters 7 s on / 3 s off × 6 · 2-3 séries', a:'Regletes 20 mm', c:'Peso corporal ou assistência', sets:3, mode:'rep'},
- 5:{p:'Repeaters leves 7/3 × 6 · 2-3 séries (manutenção)', a:'Regletes 20 mm, pegada aberta', c:'Conservador — progredir devagar', sets:3, mode:'rep'}
-};
 const hoje = new Date(); hoje.setHours(0,0,0,0);
 const HOJE = hoje.toISOString().slice(0,10);
 function semana(d){ return Math.max(1, Math.floor((d-START)/(7*864e5))+1); }
 const SEM = semana(hoje);
 const AGOSTO = hoje >= CLIMB_START;
+
+// durações que progridem com a semana
+const sapaT = (SEM<=2 && !AGOSTO) ? 600 : 900;   // sapatilha: 10 → 15 min
+const sapaLbl = (sapaT===600?'10 min':'15 min');
+const suspT = (SEM>=3 || AGOSTO) ? 45 : 30;      // suspensão na barra
+
+// exercício: [nome, dose, obs, campoKg, timerSegundos?]
+const WORKOUTS = {
+ A:{nome:'Dia A — Academia: força geral + antagonistas', ex:[
+   ['Aquecimento (esteira/bike + mobilidade)','10 min','Obrigatório',0,600],
+   ['Agachamento ou leg press','3 × 10','Carga confortável',1],
+   ['Levantamento terra romeno','3 × 8','Técnica antes de carga',1],
+   ['Panturrilha em pé (gêmeos)','3 × 12-15','Subir controlado, descer alongando bem',1],
+   ['Supino ou flexão de braço','3 × 10','Antagonista de tração',1],
+   ['Desenvolvimento de ombros','3 × 10','Halteres',1],
+   ['Remada baixa','3 × 10','',1],
+   ['Extensão de punho com halter leve','3 × 15','Prevenção de epicondilite',1],
+   ['Rotação externa de ombro (elástico)','3 × 15','Saúde do manguito',0],
+   ['Prancha','3 × 30-45 s','Use o timer ▶ por série',0,40]]},
+ D:{nome:'Dia D — Casa: aeróbico + core + mobilidade', ex:[
+   ['Aeróbico (caminhada/bike/esteira)','30-40 min','Ritmo confortável — dá pra conversar',0,2100],
+   ['Hollow body','3 × 20-30 s','Timer ▶ por série',0,30],
+   ['Prancha lateral','3 × 20-30 s/lado','Timer ▶ por lado',0,30],
+   ['Superman','3 × 15','Lombar',0],
+   ['Adaptação da sapatilha',''+sapaLbl,'Usar durante a mobilidade · dormência/dor aguda = tirar',0,sapaT],
+   ['Mobilidade de quadril e ombro','10 min','',0,600]]},
+ B:{nome:'Dia B — Casa: fingerboard + tração', ex:[
+   ['Aquecimento geral + mãos e antebraços','10 min','Abrir/fechar mãos, punhos',0,600],
+   ['Fingerboard (protocolo da semana)','ver acima','Use os timers ▶ do card',0],
+   ['Barra fixa (ou negativas)','3 × máx−2','Pare 2 reps antes da falha · Fase 2: 2 s de pausa no topo',0],
+   ['Alongamento de antebraços','5 min','',0,300]]},
+ E:{nome:'Dia E — Casa: antagonistas leves + panturrilhas', ex:[
+   ['Flexão de braço','3 × 10-15','',0],
+   ['Extensão de punho com halter leve','3 × 15','Prevenção de epicondilite',1],
+   ['Rotação externa de ombro (elástico)','3 × 15','Saúde do manguito',0],
+   ['Panturrilha em pé (leve)','3 × 15','Peso corporal',0],
+   ['Isometria na ponta do pé (degrau)','3 × 30-45 s','Simula apoio pequeno · 1 perna quando fácil',0,40],
+   ['Adaptação da sapatilha',''+sapaLbl,'Dormência/dor aguda = tirar',0,sapaT],
+   ['Aeróbico leve','20-30 min','Opcional, conforme disposição',0,1500]]},
+ C:{nome:'Dia C — Tração, resistência e mobilidade', ex:[
+   ['Aquecimento','10 min','',0,600],
+   ['Barra fixa ou puxada alta','4 × 6-8','',1],
+   ['Remada curvada','3 × 10','',1],
+   ['Flexão de braço','3 × 10-15','',0],
+   ['Afundo','3 × 10/perna','Pernas fortes poupam os braços na via',1],
+   ['Panturrilha sentado (sóleo)','3 × 15-20','Joelho flexionado — segura o apoio pequeno',1],
+   ['Suspensão na barra (tempo)','3 × '+suspT+' s','Pegada aberta',0,suspT],
+   ['Mobilidade de quadril e ombro','10 min','Essencial para escalada',0,600]]}
+};
+// Fingerboard GoUp: sem regletes ≥30mm → sem.2 usa reglete 27mm, sem.3-4 reglete 20mm
+const FB = {
+ 1:{p:'Dead hang 5 × 10 s', a:'Agarrão (jug)', c:'Pés apoiados se precisar', sets:5, mode:'dead'},
+ 2:{p:'Dead hang 6 × 10 s', a:'Reglete 27 mm', c:'Peso corporal; assistência se precisar', sets:6, mode:'dead'},
+ 3:{p:'Dead hang 6 × 10 s', a:'Reglete 20 mm', c:'Assistência leve, RPE ≤ 7', sets:6, mode:'dead'},
+ 4:{p:'Repeaters 7 s on / 3 s off × 6 · 2-3 séries', a:'Reglete 20 mm', c:'Peso corporal ou assistência', sets:3, mode:'rep'},
+ 5:{p:'Repeaters leves 7/3 × 6 · 2-3 séries (manutenção)', a:'Reglete 20-27 mm, pegada aberta', c:'Conservador — progredir devagar', sets:3, mode:'rep'}
+};
 const FASE = AGOSTO ? 'Agosto — retorno à escalada' : (SEM<=2 ? 'Fase 1 — Adaptação (sem. '+SEM+')' : 'Fase 2 — Construção (sem. '+SEM+')');
 const fbSem = AGOSTO ? 5 : Math.min(SEM,4);
 const fb = FB[fbSem];
@@ -434,15 +471,27 @@ $('w-fbinfo').textContent = 'Fingerboard desta semana: '+fb.p;
 const dow = hoje.getDay();
 let sug='Descanso hoje — recuperação também é treino.';
 let sugDia=null;
-if(AGOSTO){ if(dow===1){sug='Hoje: Dia A (academia — manutenção)';sugDia='A';}
+if(AGOSTO){
+ if(dow===1){sug='Hoje: Dia A (academia — manutenção)';sugDia='A';}
+ else if(dow===2){sug='Hoje: Dia D (aeróbico + core + mobilidade)';sugDia='D';}
  else if(dow===3){sug='Hoje: Dia B (fingerboard — estímulo principal de dedos)';sugDia='B';}
- else if(dow===0||dow===6){sug='Hoje: Escalada! 🧗 Registre na aba Escalada.';}
-}else{ if(dow===1){sug='Hoje: Dia A (academia)';sugDia='A';}
- else if(dow===3){sug='Hoje: Dia B (casa)';sugDia='B';}
- else if(dow===5){sug='Hoje: Dia C';sugDia='C';} }
+ else if(dow===4){sug='Hoje: descanso ativo — caminhada leve ou alongamento.';}
+ else if(dow===5){sug='Hoje: Dia C reduzido ou descanso ativo, conforme fadiga.';sugDia='C';}
+ else {sug='Hoje: Escalada! 🧗 Registre na aba Escalada.';}
+}else if(SEM===1){ // semana 1 (13-19/07) foi atípica: D na sexta, E no sábado
+ if(dow===5){sug='Hoje: Dia D (aeróbico + core + mobilidade)';sugDia='D';}
+ else if(dow===6){sug='Hoje: Dia E (antagonistas + panturrilhas)';sugDia='E';}
+}else{
+ if(dow===1){sug='Hoje: Dia A (academia)';sugDia='A';}
+ else if(dow===2){sug='Hoje: Dia D (aeróbico + core + mobilidade)';sugDia='D';}
+ else if(dow===3){sug='Hoje: Dia B (fingerboard + tração)';sugDia='B';}
+ else if(dow===4){sug='Hoje: descanso ativo — caminhada leve 30-45 min ou alongamento.';}
+ else if(dow===5){sug='Hoje: Dia C (tração pesada)';sugDia='C';}
+ else if(dow===6){sug='Hoje: Dia E (antagonistas + panturrilhas)';sugDia='E';}
+}
 $('sugestao').textContent = sug;
 
-['A','B','C'].forEach(d=>{
+['A','D','B','E','C'].forEach(d=>{
  const c=document.createElement('div'); c.className='chip'; c.textContent='Dia '+d; c.dataset.d=d;
  c.onclick=()=>selDia(d); $('daychips').appendChild(c);
 });
@@ -450,6 +499,9 @@ function selDia(d,keep){ cur.dia=d; if(!keep){ cur.checks={}; cur.cargas={}; }
  document.querySelectorAll('#daychips .chip').forEach(c=>c.classList.toggle('on',c.dataset.d===d));
  $('fbcard').classList.toggle('hide', d!=='B');
  renderEx(); saveDraft(); }
+function fmtDur(s){ return s<90 ? s+' s' : Math.round(s/60)+' min'; }
+function startEx(d,i){ const e=WORKOUTS[d].ex[i];
+ runSeq([{s:5,l:'prepare-se',c:PREP_C,f:880},{s:e[4],l:e[0].split('(')[0].trim().slice(0,20),c:ON_C,f:523}]); }
 function renderEx(){
  const w=WORKOUTS[cur.dia]; const el=$('exlist'); el.innerHTML='';
  w.ex.forEach((e,i)=>{
@@ -458,7 +510,9 @@ function renderEx(){
   const row=document.createElement('div'); row.className='ex'+(ck?' done':''); row.id='ex'+i;
   row.innerHTML='<input type="checkbox"'+(ck?' checked':'')+' onchange="chk('+i+',this.checked)">'+
    '<div class="info"><div class="nm">'+e[0]+'</div><div class="dt">'+e[1]+'</div>'+
-   (e[2]?'<div class="ob">'+e[2]+'</div>':'')+'</div>'+
+   (e[2]?'<div class="ob">'+e[2]+'</div>':'')+
+   (e[4]?'<div class="tmr" onclick="startEx(\''+cur.dia+'\','+i+')">▶ '+fmtDur(e[4])+'</div>':'')+
+   '</div>'+
    (e[3]?'<input type="text" inputmode="decimal" placeholder="kg" value="'+cg+'" onchange="carga('+i+',this.value)">':'');
   el.appendChild(row);
  });
@@ -473,7 +527,7 @@ function upCount(){ if(!cur.dia) return;
 
 $('fbproto').innerHTML='<b>Semana '+(AGOSTO?'de manutenção':fbSem)+':</b> '+fb.p+'<br><b>Agarra:</b> '+fb.a+'<br><b>Carga:</b> '+fb.c;
 $('fbtab').innerHTML=[1,2,3,4].map(s=>'<b>Sem. '+s+':</b> '+FB[s].p+' · '+FB[s].a+' · '+FB[s].c).join('<br>')+
- '<br><b>Agosto:</b> '+FB[5].p+'<br><br>Descanso: 2-3 min (dead hangs) · 3 min (repeaters). Dor nos dedos → volte uma semana. Max hangs com carga só após 8-12 semanas escalando sem dor.';
+ '<br><b>Agosto:</b> '+FB[5].p+'<br><br>Descanso: 2-3 min (dead hangs) · 3 min (repeaters). Dor nos dedos → volte uma semana. Max hangs com carga só após 8-12 semanas escalando sem dor.<br>No GoUp: monodedo, bidedo e cristal proibidos nas primeiras 12 semanas.';
 
 function mkRpe(el,max,cb){ for(let i=1;i<=max;i++){ const b=document.createElement('button'); b.textContent=i;
  b.onclick=()=>{ cb(i); [...el.children].forEach(x=>x.classList.toggle('on',+x.textContent<=i)); }; el.appendChild(b);} }
@@ -489,7 +543,7 @@ $('escnote').textContent = AGOSTO ? 'Semana '+(Math.floor((hoje-CLIMB_START)/(7*
  'A escalada começa em 08/08. Use esta aba a partir de lá para registrar as sessões.';
 
 function salvarTreino(){
- if(!cur.dia){ alert('Selecione o dia do treino (A, B ou C).'); return; }
+ if(!cur.dia){ alert('Selecione o dia do treino (A, D, B, E ou C).'); return; }
  const w=WORKOUTS[cur.dia];
  const feitos=w.ex.map((e,i)=>cur.checks[i]?e[0]+(cur.cargas[i]?' ('+cur.cargas[i]+'kg)':''):null).filter(Boolean);
  addReg({t:'treino', data:HOJE, semana:SEM, dia:cur.dia, src:'phone',
@@ -557,7 +611,7 @@ function wshow(v){ WVIEWS.forEach(x=>$(x).classList.toggle('hide',x!==v)); windo
 let r={};
 function regStart(){ r={data:HOJE}; wshow('w-tipo'); }
 function regTipo(t){
- if(t==='E'){ r.t='escalada'; r.vias=6; $('viasN').textContent=6; wshow('w-vias'); }
+ if(t==='ESC'){ r.t='escalada'; r.vias=6; $('viasN').textContent=6; wshow('w-vias'); }
  else { r.t='treino'; r.dia=t; r.semana=SEM; wshow('w-rpe'); }
 }
 function vias(d){ r.vias=Math.max(1,Math.min(20,(r.vias||6)+d)); $('viasN').textContent=r.vias; }
