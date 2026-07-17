@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0f141b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>Retorno à Escalada</title>
+<style>
+:root{
+  --bg:#0f141b; --card:#1a222d; --card2:#212c3a; --text:#e8edf3; --muted:#8a99ab;
+  --accent:#f0713a; --accent2:#3ba776; --warn:#e05555; --line:#2c3947; --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+body{margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.hide{display:none !important}
+/* ============ MODO CELULAR ============ */
+body.phone{padding-bottom:20px}
+header{padding:18px 16px 10px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px}
+header h1{margin:0; font-size:20px}
+header .sub{color:var(--muted); font-size:13px; margin-top:4px}
+.badge{display:inline-block; background:var(--accent); color:#fff; border-radius:20px; padding:2px 10px; font-size:12px; font-weight:600; margin-top:6px}
+#syncbadge{font-size:11px; padding:4px 10px; border-radius:20px; background:var(--card2); border:1px solid var(--line); color:var(--muted); white-space:nowrap; cursor:pointer}
+#syncbadge.on{color:#a8e6c3; border-color:#2e5c44}
+#syncbadge.pend{color:#f5c66f; border-color:#8a6d1a}
+.tabs{display:flex; gap:6px; padding:8px 12px; position:sticky; top:0; background:var(--bg); z-index:5; overflow-x:auto}
+.tab{flex:1; min-width:78px; text-align:center; padding:10px 6px; border-radius:10px; background:var(--card); color:var(--muted); font-size:13px; font-weight:600; border:1px solid var(--line); cursor:pointer; white-space:nowrap}
+.tab.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+main{padding:8px 12px}
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:10px}
+.card h2{margin:0 0 4px; font-size:16px}
+.card .note{color:var(--muted); font-size:12.5px; line-height:1.45}
+.chips{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0}
+.chip{padding:8px 14px; border-radius:20px; background:var(--card2); border:1px solid var(--line); color:var(--text); font-size:13px; font-weight:600; cursor:pointer}
+.chip.on{background:var(--accent2); border-color:var(--accent2); color:#fff}
+.ex{display:flex; align-items:flex-start; gap:10px; padding:12px 0; border-bottom:1px solid var(--line)}
+.ex:last-child{border-bottom:none}
+.ex input[type=checkbox]{width:24px; height:24px; margin-top:2px; accent-color:var(--accent2); flex-shrink:0}
+.ex .info{flex:1}
+.ex .nm{font-weight:600; font-size:14.5px}
+.ex .dt{color:var(--accent); font-size:13px; font-weight:600; margin-top:2px}
+.ex .ob{color:var(--muted); font-size:12px; margin-top:2px}
+.ex.done .nm{color:var(--muted); text-decoration:line-through}
+.ex input[type=text]{width:74px; background:var(--card2); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:8px 6px; font-size:13px; text-align:center}
+.ex input[type=text]::placeholder{color:#5a6b7d}
+label.fl{display:block; color:var(--muted); font-size:12px; margin:10px 0 4px; font-weight:600}
+input.big, textarea.big{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--text); padding:12px; font-size:15px; font-family:inherit}
+textarea.big{min-height:64px; resize:vertical}
+.rpe{display:flex; gap:4px; margin-top:4px}
+.rpe button{flex:1; padding:10px 0; border-radius:8px; background:var(--card2); border:1px solid var(--line); color:var(--muted); font-size:14px; font-weight:700; cursor:pointer}
+.rpe button.on{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn{display:block; width:100%; padding:15px; border-radius:12px; border:none; background:var(--accent2); color:#fff; font-size:16px; font-weight:700; cursor:pointer; margin-top:12px; font-family:inherit}
+.btn.sec{background:var(--card2); border:1px solid var(--line); color:var(--text); font-size:14px; padding:12px}
+.btn.warn{background:var(--warn)}
+.alert{background:#3a2530; border:1px solid #5c3a44; border-radius:10px; padding:10px 12px; font-size:12.5px; color:#f0b9c4; margin-top:10px; line-height:1.4}
+.ok{background:#1f3a2d; border-color:#2e5c44; color:#a8e6c3}
+.hist{padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+.hist:last-child{border-bottom:none}
+.hist .h1{font-weight:700}
+.hist .h2{color:var(--muted); font-size:12.5px; margin-top:2px; white-space:pre-wrap}
+.hist .del{float:right; color:var(--warn); font-size:12px; background:none; border:none; cursor:pointer; padding:4px}
+.hist .cloud{font-size:11px}
+.prog{height:6px; background:var(--card2); border-radius:3px; margin-top:8px; overflow:hidden}
+.prog div{height:100%; background:var(--accent2); transition:width .3s}
+/* ============ MODO WATCH ============ */
+body.watch{font-size:4.5vw}
+body.watch .wrap{min-height:100vh; padding:12vw 10vw 16vw; display:flex; flex-direction:column; text-align:center}
+body.watch h1{font-size:6vw; margin:0 0 1vw; color:var(--muted); font-weight:600}
+body.watch .fase{font-size:4.5vw; color:var(--accent); font-weight:700; margin-bottom:3vw}
+.wbtn{display:block; width:100%; border:none; border-radius:6vw; background:var(--card);
+ color:var(--text); font-size:6vw; font-weight:700; padding:5.5vw 2vw; margin:1.8vw 0; font-family:inherit; cursor:pointer}
+.wbtn.go{background:var(--accent2); color:#fff}
+.wbtn.orange{background:var(--accent); color:#fff}
+.wbtn.warn{background:var(--warn); color:#fff}
+.wbtn.small{font-size:5vw; padding:4vw 2vw}
+body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2vw 0}
+.grid{display:flex; flex-wrap:wrap; gap:1.6vw; justify-content:center; margin:2vw 0}
+.grid button{width:16vw; height:14vw; border-radius:4vw; border:none; background:var(--card); color:var(--text); font-size:6.5vw; font-weight:800; font-family:inherit; cursor:pointer}
+.stepper{display:flex; align-items:center; justify-content:center; gap:4vw; margin:3vw 0}
+.stepper button{width:18vw; height:18vw; border-radius:50%; border:none; background:var(--card); color:var(--text); font-size:9vw; font-weight:800; cursor:pointer}
+.stepper span{font-size:12vw; font-weight:800; min-width:20vw}
+.whist{font-size:4.3vw; text-align:left; line-height:1.5; padding:2vw 0; border-bottom:1px solid var(--line)}
+.whist b{color:var(--accent)}
+/* ============ TIMER (fullscreen, ambos os modos) ============ */
+#v-timer{position:fixed; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:50; transition:background .3s; background:#141a22}
+#t-set{font-size:min(5.5vw,22px); color:rgba(255,255,255,.85); font-weight:700; margin-bottom:1vh}
+#t-label{font-size:min(8vw,34px); font-weight:800; text-transform:uppercase; letter-spacing:.05em}
+#t-time{font-size:min(24vw,110px); font-weight:800; font-variant-numeric:tabular-nums; line-height:1.1}
+#t-stop{margin-top:3vh; width:min(60vw,240px); background:rgba(0,0,0,.35); color:#fff; border:none; border-radius:min(6vw,20px); font-size:min(6vw,20px); font-weight:700; padding:min(5vw,16px); cursor:pointer; font-family:inherit}
+</style>
+</head>
+<body>
+
+<!-- ==================== TIMER (comum) ==================== -->
+<div id="v-timer" class="hide">
+  <div id="t-set"></div>
+  <div id="t-label"></div>
+  <div id="t-time"></div>
+  <button id="t-stop" onclick="stopTimer(false)">Parar</button>
+</div>
+
+<!-- ==================== MODO CELULAR ==================== -->
+<div id="ui-phone" class="hide">
+<header>
+  <div>
+    <h1>🧗 Retorno à Escalada</h1>
+    <div class="sub" id="hdate"></div>
+    <span class="badge" id="hfase"></span>
+  </div>
+  <span id="syncbadge" onclick="syncAll(true)">…</span>
+</header>
+
+<div class="tabs">
+  <div class="tab on" data-v="treino" onclick="tab('treino')">Treino</div>
+  <div class="tab" data-v="escalada" onclick="tab('escalada')">Escalada</div>
+  <div class="tab" data-v="hist" onclick="tab('hist')">Histórico</div>
+  <div class="tab" data-v="plano" onclick="tab('plano')">Plano</div>
+</div>
+
+<main>
+<section id="v-treino">
+  <div class="card">
+    <h2 id="sugestao"></h2>
+    <div class="note">Escolha o treino de hoje:</div>
+    <div class="chips" id="daychips"></div>
+  </div>
+  <div class="card" id="fbcard">
+    <h2>Protocolo de fingerboard</h2>
+    <div class="note" id="fbproto"></div>
+    <div class="chips">
+      <div class="chip" onclick="startDead()">▶ Dead hangs (série completa)</div>
+      <div class="chip" onclick="startRep()">▶ Repeaters 7/3</div>
+    </div>
+    <div class="alert">Pegada aberta ou semiaberta. Nada de crimp fechado, monodedos ou campus. <b>Dor nos dedos = parar e regredir uma semana no protocolo.</b></div>
+  </div>
+  <div class="card">
+    <h2>Exercícios <span id="excount" style="color:var(--muted);font-size:13px;font-weight:400"></span></h2>
+    <div class="prog"><div id="pbar" style="width:0%"></div></div>
+    <div id="exlist"></div>
+  </div>
+  <div class="card">
+    <h2>Finalizar treino</h2>
+    <label class="fl">RPE — esforço percebido (1-10)</label>
+    <div class="rpe" id="rpesel"></div>
+    <label class="fl">Dor nos dedos ou articulações?</label>
+    <div class="chips" id="dorsel">
+      <div class="chip" data-d="N" onclick="setDor('N')">Não</div>
+      <div class="chip" data-d="S" onclick="setDor('S')">Sim</div>
+    </div>
+    <div class="alert hide" id="doralert">⚠️ Dor registrada. Regra do plano: dor articular/dedos = parar o exercício. No fingerboard, volte uma semana no protocolo. Se persistir 2+ semanas, procure um fisioterapeuta esportivo.</div>
+    <label class="fl">Observações</label>
+    <textarea class="big" id="obs" placeholder="Cargas, sensações, o que ajustar…"></textarea>
+    <button class="btn" onclick="salvarTreino()">✓ Salvar treino</button>
+  </div>
+  <div class="card">
+    <h2>Timers de descanso</h2>
+    <div class="chips">
+      <div class="chip" onclick="startRest(120)">Descanso 2 min</div>
+      <div class="chip" onclick="startRest(180)">Descanso 3 min</div>
+    </div>
+  </div>
+</section>
+
+<section id="v-escalada" class="hide">
+  <div class="card">
+    <h2>Sessão de escalada</h2>
+    <div class="note" id="escnote"></div>
+    <label class="fl">Local</label>
+    <input class="big" id="e-local" placeholder="Ginásio / rocha">
+    <label class="fl">Nº de vias</label>
+    <input class="big" id="e-vias" type="number" inputmode="numeric" placeholder="6-8 nas primeiras sessões">
+    <label class="fl">Graus escalados</label>
+    <input class="big" id="e-graus" placeholder="ex.: 4º, 5º, V+">
+    <label class="fl">Sensação dos dedos (1 = ótima · 5 = dor)</label>
+    <div class="rpe" id="e-dedos"></div>
+    <label class="fl">RPE (1-10)</label>
+    <div class="rpe" id="e-rpe"></div>
+    <label class="fl">Observações</label>
+    <textarea class="big" id="e-obs" placeholder="Como foi? Top rope? Agarras?"></textarea>
+    <button class="btn" onclick="salvarEscalada()">✓ Salvar sessão</button>
+    <div class="alert">Primeiras sessões: 6-8 vias, 2-4 graus abaixo do antigo máximo, agarras grandes, top rope à vontade. Progrida meio grau por vez — sem compensar com volume.</div>
+  </div>
+</section>
+
+<section id="v-hist" class="hide">
+  <div class="card">
+    <h2>Registros <span id="histinfo" style="color:var(--muted);font-size:12px;font-weight:400"></span></h2>
+    <div id="histlist" class="note">Nenhum treino registrado ainda.</div>
+  </div>
+  <div class="card">
+    <h2>Exportar</h2>
+    <div class="note">Com a nuvem configurada, o Claude lê os registros direto — exportação é só reserva.</div>
+    <button class="btn sec" onclick="copiar()">📋 Copiar resumo dos registros</button>
+    <button class="btn sec" onclick="baixarCSV()">⬇ Baixar CSV</button>
+    <div class="alert ok hide" id="copiado">Copiado! Cole na conversa do Projeto Escalada.</div>
+  </div>
+  <div class="card">
+    <h2>Aparência</h2>
+    <button class="btn sec" onclick="setMode('watch')">⌚ Mudar para modo relógio</button>
+  </div>
+</section>
+
+<section id="v-plano" class="hide">
+  <div class="card"><h2>Visão geral</h2><div class="note">
+    <b>Preparação:</b> 13/07 a 07/08 — 3 treinos/semana (seg A · qua B · sex C).<br>
+    <b>Fase 1 (sem. 1-2):</b> adaptação, RPE 6-7. Reacostumar tecidos, não bater recordes.<br>
+    <b>Fase 2 (sem. 3-4):</b> +5-10% de carga quando completar tudo com boa técnica; barra fixa com 2 s de pausa no topo; suspensão 3×45 s no dia C.<br>
+    <b>Agosto:</b> seg A (manutenção) · qua B (principal estímulo de dedos) · escalada 1x no fim de semana.<br><br>
+    <b>Regra de ouro:</b> dor articular ou nos dedos = parar. Desconforto muscular é normal; dor aguda em polia, punho ou ombro não é.
+  </div></div>
+  <div class="card"><h2>Progressão do fingerboard</h2><div class="note" id="fbtab"></div></div>
+  <div class="card"><h2>Sinais de alerta</h2><div class="note">
+    • Dor na base dos dedos ao apertar agarras → possível polia: pare e descanse 1 semana.<br>
+    • Dor no cotovelo → reduza tração, reforce extensores de punho.<br>
+    • Ombro estalando com dor → revise o desenvolvimento, priorize rotadores.<br>
+    • Dor persistindo 2+ semanas → fisioterapeuta esportivo.
+  </div></div>
+</section>
+</main>
+</div>
+
+<!-- ==================== MODO WATCH ==================== -->
+<div id="ui-watch" class="hide">
+  <div class="wrap" id="w-home">
+    <h1>🧗 Escalada</h1>
+    <div class="fase" id="w-fase"></div>
+    <button class="wbtn go" onclick="startDead()">▶ Dead hang</button>
+    <button class="wbtn go" onclick="startRep()">▶ Repeaters 7/3</button>
+    <button class="wbtn" onclick="startRest(120)">Descanso 2 min</button>
+    <button class="wbtn" onclick="startRest(180)">Descanso 3 min</button>
+    <button class="wbtn orange" onclick="regStart()">✏ Registrar</button>
+    <button class="wbtn small" onclick="wshow('w-hist');renderWHist()">Registros <span id="w-sync"></span></button>
+    <div class="note" id="w-fbinfo"></div>
+    <button class="wbtn small" onclick="setMode('phone')">📱 modo celular</button>
+  </div>
+
+  <div class="wrap hide" id="w-tipo">
+    <h1>O que você fez?</h1>
+    <button class="wbtn" onclick="regTipo('A')">Dia A · academia</button>
+    <button class="wbtn" onclick="regTipo('B')">Dia B · casa</button>
+    <button class="wbtn" onclick="regTipo('C')">Dia C</button>
+    <button class="wbtn orange" onclick="regTipo('E')">🧗 Escalada</button>
+    <button class="wbtn small" onclick="wshow('w-home')">← voltar</button>
+  </div>
+
+  <div class="wrap hide" id="w-vias">
+    <h1>Quantas vias?</h1>
+    <div class="stepper">
+      <button onclick="vias(-1)">−</button><span id="viasN">6</span><button onclick="vias(1)">+</button>
+    </div>
+    <button class="wbtn go" onclick="wshow('w-dedos')">OK</button>
+  </div>
+
+  <div class="wrap hide" id="w-dedos">
+    <h1>Dedos (1 ótimo · 5 dor)</h1>
+    <div class="grid" id="g-dedos"></div>
+  </div>
+
+  <div class="wrap hide" id="w-rpe">
+    <h1>Esforço (RPE)</h1>
+    <div class="grid" id="g-rpe"></div>
+  </div>
+
+  <div class="wrap hide" id="w-dor">
+    <h1>Dor nos dedos?</h1>
+    <button class="wbtn go" onclick="regDor('N')">Não</button>
+    <button class="wbtn warn" onclick="regDor('S')">Sim</button>
+  </div>
+
+  <div class="wrap hide" id="w-ok">
+    <h1 style="font-size:8vw">✓ Salvo!</h1>
+    <div class="note" id="w-okmsg"></div>
+    <button class="wbtn" onclick="wshow('w-home')">OK</button>
+  </div>
+
+  <div class="wrap hide" id="w-hist">
+    <h1>Registros</h1>
+    <div id="w-histlist" class="note" style="text-align:left"></div>
+    <button class="wbtn small" onclick="syncAll(true).then(()=>renderWHist())">🔄 Sincronizar</button>
+    <button class="wbtn small" onclick="wshow('w-home')">← voltar</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// =====================================================================
+// CONFIGURAÇÃO DA NUVEM (Supabase)
+// Depois de criar o projeto no Supabase e rodar o supabase_schema.sql,
+// cole aqui a URL do projeto e a Publishable key (Settings → API Keys).
+// Ex.: SB_URL = 'https://abcdxyz.supabase.co'
+//      SB_KEY = 'sb_publishable_...'  (Publishable key — pode ficar visível no app)
+// NÃO use a Secret key (sb_secret_...) aqui — ela é só para backend.
+// =====================================================================
+const SB_URL = 'https://kmqyhtwrtcgcnvfnfcfg.supabase.co';   // ← URL do projeto Supabase (vazio = modo local)
+const SB_KEY = 'sb_publishable_eWfgvhfnY2rnVo_YvZJZKQ_LIqGZjqH';   // ← Publishable key (sb_publishable_...)
+const SB_TABLE = 'treinos';
+
+// ===================== DADOS DO PLANO =====================
+const START = new Date(2026,6,13);      // 13/07/2026 (plano reiniciado)
+const CLIMB_START = new Date(2026,7,8); // 08/08/2026
+const WORKOUTS = {
+ A:{nome:'Dia A — Academia: força geral + antagonistas', ex:[
+   ['Aquecimento (esteira/bike + mobilidade)','10 min','Obrigatório',0],
+   ['Agachamento ou leg press','3 × 10','Carga confortável',1],
+   ['Levantamento terra romeno','3 × 8','Técnica antes de carga',1],
+   ['Supino ou flexão de braço','3 × 10','Antagonista de tração',1],
+   ['Desenvolvimento de ombros','3 × 10','Halteres',1],
+   ['Remada baixa','3 × 10','',1],
+   ['Extensão de punho com halter leve','3 × 15','Prevenção de epicondilite',1],
+   ['Rotação externa de ombro (elástico)','3 × 15','Saúde do manguito',0],
+   ['Prancha','3 × 30-45 s','',0]]},
+ B:{nome:'Dia B — Casa: fingerboard + tração + core', ex:[
+   ['Aquecimento geral + mãos e antebraços','10 min','Abrir/fechar mãos, punhos',0],
+   ['Fingerboard (protocolo da semana)','ver acima','Use os timers ▶',0],
+   ['Barra fixa (ou negativas)','3 × máx−2','Pare 2 reps antes da falha',0],
+   ['Hollow body','3 × 20-30 s','',0],
+   ['Superman','3 × 15','Lombar',0],
+   ['Alongamento de antebraços','5 min','',0]]},
+ C:{nome:'Dia C — Tração, resistência e mobilidade', ex:[
+   ['Aquecimento','10 min','',0],
+   ['Barra fixa ou puxada alta','4 × 6-8','',1],
+   ['Remada curvada','3 × 10','',1],
+   ['Flexão de braço','3 × 10-15','',0],
+   ['Afundo','3 × 10/perna','Pernas fortes poupam os braços na via',1],
+   ['Suspensão na barra (tempo)','3 × 30 s','Pegada aberta · Fase 2: 3 × 45 s',0],
+   ['Mobilidade de quadril e ombro','10 min','Essencial para escalada',0]]}
+};
+const FB = {
+ 1:{p:'Dead hang 5 × 10 s', a:'Barra ou jug', c:'Pés apoiados (50-70% do peso)', sets:5, mode:'dead'},
+ 2:{p:'Dead hang 6 × 10 s', a:'Regletes grandes (≥ 30 mm)', c:'Pés apoiados ou elástico', sets:6, mode:'dead'},
+ 3:{p:'Dead hang 6 × 10 s', a:'Regletes 20-25 mm', c:'Assistência leve, RPE ≤ 7', sets:6, mode:'dead'},
+ 4:{p:'Repeaters 7 s on / 3 s off × 6 · 2-3 séries', a:'Regletes 20 mm', c:'Peso corporal ou assistência', sets:3, mode:'rep'},
+ 5:{p:'Repeaters leves 7/3 × 6 · 2-3 séries (manutenção)', a:'Regletes 20 mm, pegada aberta', c:'Conservador — progredir devagar', sets:3, mode:'rep'}
+};
+const hoje = new Date(); hoje.setHours(0,0,0,0);
+const HOJE = hoje.toISOString().slice(0,10);
+function semana(d){ return Math.max(1, Math.floor((d-START)/(7*864e5))+1); }
+const SEM = semana(hoje);
+const AGOSTO = hoje >= CLIMB_START;
+const FASE = AGOSTO ? 'Agosto — retorno à escalada' : (SEM<=2 ? 'Fase 1 — Adaptação (sem. '+SEM+')' : 'Fase 2 — Construção (sem. '+SEM+')');
+const fbSem = AGOSTO ? 5 : Math.min(SEM,4);
+const fb = FB[fbSem];
+const $=id=>document.getElementById(id);
+
+// ===================== ARMAZENAMENTO + SYNC =====================
+const LS='escaladaApp2', LSD='escaladaDraft2';
+// log: array de registros; sincronizados têm .id (chave remota), pendentes têm .lid
+let db = JSON.parse(localStorage.getItem(LS)||'{"log":[]}');
+function save(){ localStorage.setItem(LS, JSON.stringify(db)); }
+function pendCount(){ return db.log.filter(r=>!r.id).length; }
+const SB = SB_URL.replace(/\/$/,'');
+const rest = () => SB+'/rest/v1/'+SB_TABLE;
+// chaves novas (sb_publishable_...) vão SÓ no header apikey — nunca em Authorization: Bearer
+const sbHeaders = extra => Object.assign({apikey:SB_KEY, 'Content-Type':'application/json'}, extra||{});
+const numOrNull = v => { const n=parseInt(v,10); return Number.isFinite(n)?n:null; };
+// mapeia um registro local para as colunas da tabela (coerção de tipos)
+function toRow(r){
+ return { data:r.data||null, t:r.t||null, dia:r.dia||null, semana:numOrNull(r.semana),
+  rpe:numOrNull(r.rpe), dor:r.dor||null, fb:r.fb||null, total:numOrNull(r.total),
+  feitos:r.feitos||null, vias:numOrNull(r.vias), graus:r.graus||null,
+  dedos:numOrNull(r.dedos), local:r.local||null, src:r.src||null, obs:r.obs||null };
+}
+const SYNC_ON = () => !!(SB_URL && SB_KEY);
+
+async function syncAll(manual){
+ if(!SYNC_ON()){ setBadge('local'); return; }
+ try{
+  // 1. envia pendentes
+  for(const r of db.log.filter(x=>!x.id)){
+   const res=await fetch(rest(),{method:'POST',headers:sbHeaders({Prefer:'return=representation'}),body:JSON.stringify(toRow(r))});
+   if(!res.ok) throw new Error('post '+res.status);
+   const rows=await res.json(); r.id=(rows[0]||{}).id; delete r.lid;
+  }
+  // 2. baixa tudo e mescla
+  const res=await fetch(rest()+'?select=*&order=data.asc',{headers:sbHeaders()});
+  if(!res.ok) throw new Error('get '+res.status);
+  const remote=await res.json()||[];
+  const pendentes=db.log.filter(x=>!x.id);
+  db.log=remote.concat(pendentes);
+  db.log.sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  save(); setBadge('ok');
+  if(!$('v-hist').classList.contains('hide')) renderHist();
+ }catch(e){ setBadge('off'); if(manual) alert('Sem conexão com a nuvem agora. Registros ficam guardados no aparelho e sobem na próxima sincronização.'); }
+}
+function setBadge(st){
+ const b=$('syncbadge'), w=$('w-sync'), n=pendCount();
+ const txt = st==='local' ? '📴 sem nuvem' : st==='ok' ? (n?('☁ '+n+' pendente'+(n>1?'s':'')):'☁ sincronizado') : '☁ offline'+(n?' · '+n+' pendente'+(n>1?'s':''):'');
+ if(b){ b.textContent=txt; b.className= st==='ok'&&!n ? 'on' : (n||st==='off'?'pend':''); b.id='syncbadge'; }
+ if(w) w.textContent = n?('· '+n+'⏳'):'';
+}
+function addReg(r){ r.lid=Date.now()+''+Math.floor(Math.random()*1e4); db.log.push(r); save(); setBadge(SYNC_ON()?'off':'local'); syncAll(false); }
+async function delReg(i){
+ if(!confirm('Excluir este registro?')) return;
+ const r=db.log[i];
+ if(r.id && SYNC_ON()){
+  try{ const res=await fetch(rest()+'?id=eq.'+r.id,{method:'DELETE',headers:sbHeaders()}); if(!res.ok) throw 0; }
+  catch(e){ alert('Sem conexão — não foi possível excluir da nuvem agora. Tente de novo online.'); return; }
+ }
+ db.log.splice(i,1); save(); renderHist(); setBadge(SYNC_ON()?'ok':'local');
+}
+
+// ===================== MODO (phone / watch) =====================
+function detectMode(){
+ const m=localStorage.getItem('uiMode');
+ if(m) return m;
+ const w=innerWidth,h=innerHeight;
+ return (Math.min(w,h)<=480 && Math.abs(w-h)<90) ? 'watch' : 'phone';
+}
+function setMode(m){ localStorage.setItem('uiMode',m); applyMode(m); }
+function applyMode(m){
+ document.body.className=m;
+ $('ui-phone').classList.toggle('hide',m!=='phone');
+ $('ui-watch').classList.toggle('hide',m!=='watch');
+ if(m==='watch') wshow('w-home');
+}
+
+// ===================== ESTADO DO TREINO (celular) =====================
+let cur = {dia:null, rpe:null, dor:null};
+let esc = {dedos:null, rpe:null};
+function saveDraft(){ try{ localStorage.setItem(LSD, JSON.stringify({date:HOJE, cur, esc,
+ obs:$('obs').value, ef:{local:$('e-local').value, vias:$('e-vias').value, graus:$('e-graus').value, obs:$('e-obs').value}})); }catch(e){} }
+function clearDraft(){ localStorage.removeItem(LSD); }
+
+function tab(v){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+ ['treino','escalada','hist','plano'].forEach(s=>$('v-'+s).classList.toggle('hide',s!==v));
+ if(v==='hist') renderHist(); }
+
+$('hdate').textContent = hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+$('hfase').textContent = FASE;
+$('w-fase').textContent = AGOSTO?'Agosto — escalada':'Semana '+SEM;
+$('w-fbinfo').textContent = 'Fingerboard desta semana: '+fb.p;
+
+const dow = hoje.getDay();
+let sug='Descanso hoje — recuperação também é treino.';
+let sugDia=null;
+if(AGOSTO){ if(dow===1){sug='Hoje: Dia A (academia — manutenção)';sugDia='A';}
+ else if(dow===3){sug='Hoje: Dia B (fingerboard — estímulo principal de dedos)';sugDia='B';}
+ else if(dow===0||dow===6){sug='Hoje: Escalada! 🧗 Registre na aba Escalada.';}
+}else{ if(dow===1){sug='Hoje: Dia A (academia)';sugDia='A';}
+ else if(dow===3){sug='Hoje: Dia B (casa)';sugDia='B';}
+ else if(dow===5){sug='Hoje: Dia C';sugDia='C';} }
+$('sugestao').textContent = sug;
+
+['A','B','C'].forEach(d=>{
+ const c=document.createElement('div'); c.className='chip'; c.textContent='Dia '+d; c.dataset.d=d;
+ c.onclick=()=>selDia(d); $('daychips').appendChild(c);
+});
+function selDia(d,keep){ cur.dia=d; if(!keep){ cur.checks={}; cur.cargas={}; }
+ document.querySelectorAll('#daychips .chip').forEach(c=>c.classList.toggle('on',c.dataset.d===d));
+ $('fbcard').classList.toggle('hide', d!=='B');
+ renderEx(); saveDraft(); }
+function renderEx(){
+ const w=WORKOUTS[cur.dia]; const el=$('exlist'); el.innerHTML='';
+ w.ex.forEach((e,i)=>{
+  const ck=!!(cur.checks&&cur.checks[i]);
+  const cg=String((cur.cargas&&cur.cargas[i])||'').replace(/"/g,'&quot;');
+  const row=document.createElement('div'); row.className='ex'+(ck?' done':''); row.id='ex'+i;
+  row.innerHTML='<input type="checkbox"'+(ck?' checked':'')+' onchange="chk('+i+',this.checked)">'+
+   '<div class="info"><div class="nm">'+e[0]+'</div><div class="dt">'+e[1]+'</div>'+
+   (e[2]?'<div class="ob">'+e[2]+'</div>':'')+'</div>'+
+   (e[3]?'<input type="text" inputmode="decimal" placeholder="kg" value="'+cg+'" onchange="carga('+i+',this.value)">':'');
+  el.appendChild(row);
+ });
+ upCount();
+}
+function chk(i,v){ cur.checks[i]=v; $('ex'+i).classList.toggle('done',v); upCount(); saveDraft(); }
+function carga(i,v){ cur.cargas[i]=v; saveDraft(); }
+function upCount(){ if(!cur.dia) return;
+ const tot=WORKOUTS[cur.dia].ex.length, done=Object.values(cur.checks||{}).filter(Boolean).length;
+ $('excount').textContent='· '+done+'/'+tot;
+ $('pbar').style.width=(100*done/tot)+'%'; }
+
+$('fbproto').innerHTML='<b>Semana '+(AGOSTO?'de manutenção':fbSem)+':</b> '+fb.p+'<br><b>Agarra:</b> '+fb.a+'<br><b>Carga:</b> '+fb.c;
+$('fbtab').innerHTML=[1,2,3,4].map(s=>'<b>Sem. '+s+':</b> '+FB[s].p+' · '+FB[s].a+' · '+FB[s].c).join('<br>')+
+ '<br><b>Agosto:</b> '+FB[5].p+'<br><br>Descanso: 2-3 min (dead hangs) · 3 min (repeaters). Dor nos dedos → volte uma semana. Max hangs com carga só após 8-12 semanas escalando sem dor.';
+
+function mkRpe(el,max,cb){ for(let i=1;i<=max;i++){ const b=document.createElement('button'); b.textContent=i;
+ b.onclick=()=>{ cb(i); [...el.children].forEach(x=>x.classList.toggle('on',+x.textContent<=i)); }; el.appendChild(b);} }
+mkRpe($('rpesel'),10,v=>{cur.rpe=v; saveDraft();});
+mkRpe($('e-rpe'),10,v=>{esc.rpe=v; saveDraft();});
+mkRpe($('e-dedos'),5,v=>{esc.dedos=v; saveDraft();});
+function markRpe(el,v){ if(v) [...el.children].forEach(x=>x.classList.toggle('on',+x.textContent<=v)); }
+function setDor(v){ cur.dor=v;
+ document.querySelectorAll('#dorsel .chip').forEach(c=>c.classList.toggle('on',c.dataset.d===v));
+ $('doralert').classList.toggle('hide', v!=='S'); saveDraft(); }
+
+$('escnote').textContent = AGOSTO ? 'Semana '+(Math.floor((hoje-CLIMB_START)/(7*864e5))+1)+' de escalada — registre a sessão do fim de semana.' :
+ 'A escalada começa em 08/08. Use esta aba a partir de lá para registrar as sessões.';
+
+function salvarTreino(){
+ if(!cur.dia){ alert('Selecione o dia do treino (A, B ou C).'); return; }
+ const w=WORKOUTS[cur.dia];
+ const feitos=w.ex.map((e,i)=>cur.checks[i]?e[0]+(cur.cargas[i]?' ('+cur.cargas[i]+'kg)':''):null).filter(Boolean);
+ addReg({t:'treino', data:HOJE, semana:SEM, dia:cur.dia, src:'phone',
+  fb: cur.dia==='B'?fb.p:null, feitos, total:w.ex.length, rpe:cur.rpe, dor:cur.dor, obs:$('obs').value});
+ clearDraft();
+ alert('Treino salvo! 💪'+(cur.dor==='S'?'\n\nAtenção à dor: regrida uma semana no fingerboard.':''));
+ cur={dia:null,rpe:null,dor:null}; $('obs').value='';
+ document.querySelectorAll('#daychips .chip,#dorsel .chip,#rpesel button').forEach(c=>c.classList.remove('on'));
+ $('doralert').classList.add('hide'); $('exlist').innerHTML=''; $('excount').textContent=''; $('pbar').style.width='0%';
+}
+function salvarEscalada(){
+ addReg({t:'escalada', data:HOJE, local:$('e-local').value, src:'phone',
+  vias:$('e-vias').value, graus:$('e-graus').value, dedos:esc.dedos, rpe:esc.rpe, obs:$('e-obs').value});
+ clearDraft(); alert('Sessão de escalada salva! 🧗');
+ ['e-local','e-vias','e-graus','e-obs'].forEach(i=>$(i).value='');
+ esc={dedos:null,rpe:null};
+ document.querySelectorAll('#e-rpe button,#e-dedos button').forEach(b=>b.classList.remove('on'));
+}
+
+// ===================== HISTÓRICO / EXPORT (celular) =====================
+function fmt(d){ const[y,m,dd]=(d||'').split('-'); return dd+'/'+m+'/'+y; }
+function renderHist(){
+ const el=$('histlist');
+ $('histinfo').textContent = db.log.length ? '· '+db.log.length : '';
+ if(!db.log.length){ el.textContent='Nenhum treino registrado ainda.'; return; }
+ el.innerHTML='';
+ [...db.log].reverse().forEach((r,ri)=>{
+  const i=db.log.length-1-ri;
+  const cloud=r.id?'☁':'⏳';
+  const d=document.createElement('div'); d.className='hist';
+  if(r.t==='treino'){
+   d.innerHTML='<button class="del" onclick="delReg('+i+')">excluir</button><div class="h1"><span class="cloud">'+cloud+'</span> '+fmt(r.data)+' — Dia '+r.dia+(r.semana?' (semana '+r.semana+')':'')+(r.src==='watch'?' ⌚':'')+'</div>'+
+    '<div class="h2">'+(r.feitos?r.feitos.length+'/'+r.total+' exercícios · ':'')+'RPE '+(r.rpe??'—')+' · Dor: '+(r.dor??'—')+
+    (r.fb?'\nFingerboard: '+r.fb:'')+(r.obs?'\n'+r.obs:'')+'</div>';
+  }else{
+   d.innerHTML='<button class="del" onclick="delReg('+i+')">excluir</button><div class="h1"><span class="cloud">'+cloud+'</span> '+fmt(r.data)+' — Escalada 🧗 '+(r.local||'')+(r.src==='watch'?' ⌚':'')+'</div>'+
+    '<div class="h2">'+(r.vias||'?')+' vias · graus: '+(r.graus||'—')+' · dedos '+(r.dedos??'—')+'/5 · RPE '+(r.rpe??'—')+(r.obs?'\n'+r.obs:'')+'</div>';
+  }
+  el.appendChild(d);
+ });
+}
+function resumo(){
+ return db.log.map(r=> r.t==='treino'
+  ? `${fmt(r.data)} | Treino ${r.dia} | Semana ${r.semana??''} | Realizado: S | RPE: ${r.rpe??''} | Dor dedos: ${r.dor??''}${r.fb?' | FB: '+r.fb:''} | Obs: ${r.obs||''} | Exercícios: ${(r.feitos||[]).join('; ')}`
+  : `${fmt(r.data)} | Escalada | Local: ${r.local||''} | Vias: ${r.vias||''} | Graus: ${r.graus||''} | Dedos: ${r.dedos??''}/5 | RPE: ${r.rpe??''} | Obs: ${r.obs||''}`
+ ).join('\n');
+}
+function copiar(){
+ const txt='Registros do app de treino (atualizar planilha):\n'+resumo();
+ (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>{
+  $('copiado').classList.remove('hide'); setTimeout(()=>$('copiado').classList.add('hide'),3000);
+ }).catch(()=>prompt('Copie manualmente:',txt));
+}
+function baixarCSV(){
+ let csv='tipo,data,dia,semana,rpe,dor_dedos,vias,graus,dedos,local,obs\n';
+ db.log.forEach(r=>{ const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+  csv+= [r.t,r.data,r.dia||'',r.semana||'',r.rpe||'',r.dor||'',r.vias||'',r.graus||'',r.dedos||'',r.local||'',q(r.obs||'')].join(',')+'\n'; });
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='treinos_escalada.csv'; a.click();
+}
+
+// ===================== TELAS WATCH =====================
+const WVIEWS=['w-home','w-tipo','w-vias','w-dedos','w-rpe','w-dor','w-ok','w-hist'];
+function wshow(v){ WVIEWS.forEach(x=>$(x).classList.toggle('hide',x!==v)); window.scrollTo(0,0); }
+let r={};
+function regStart(){ r={data:HOJE}; wshow('w-tipo'); }
+function regTipo(t){
+ if(t==='E'){ r.t='escalada'; r.vias=6; $('viasN').textContent=6; wshow('w-vias'); }
+ else { r.t='treino'; r.dia=t; r.semana=SEM; wshow('w-rpe'); }
+}
+function vias(d){ r.vias=Math.max(1,Math.min(20,(r.vias||6)+d)); $('viasN').textContent=r.vias; }
+function mkGrid(el,max,cb){ for(let i=1;i<=max;i++){ const b=document.createElement('button');
+ b.textContent=i; b.onclick=()=>cb(i); el.appendChild(b);} }
+mkGrid($('g-dedos'),5,v=>{ r.dedos=v; wshow('w-rpe'); });
+mkGrid($('g-rpe'),10,v=>{ r.rpe=v; r.t==='escalada'?wfim():wshow('w-dor'); });
+function regDor(v){ r.dor=v; wfim(); }
+function wfim(){ r.src='watch'; addReg(r); vib([200,80,200],660);
+ $('w-okmsg').textContent = r.dor==='S'
+  ? '⚠️ Dor registrada: regrida uma semana no fingerboard e avise o Claude.'
+  : (r.t==='escalada'?'Boa escalada! 🧗':'Bom treino! 💪');
+ wshow('w-ok');
+}
+function renderWHist(){ const el=$('w-histlist');
+ if(!db.log.length){ el.textContent='Nenhum registro ainda.'; return; }
+ el.innerHTML=[...db.log].reverse().slice(0,15).map(x=> x.t==='escalada'
+  ? '<div class="whist">'+(x.id?'☁':'⏳')+' <b>'+fmt(x.data).slice(0,5)+'</b> Escalada · '+(x.vias||'?')+' vias · dedos '+(x.dedos??'—')+'/5 · RPE '+(x.rpe??'—')+'</div>'
+  : '<div class="whist">'+(x.id?'☁':'⏳')+' <b>'+fmt(x.data).slice(0,5)+'</b> Dia '+x.dia+' · RPE '+(x.rpe??'—')+' · dor: '+(x.dor??'—')+'</div>'
+ ).join('');
+}
+
+// ===================== FEEDBACK (vibração + bip) =====================
+let audio=null;
+function vib(pat,freq){
+ try{ if(navigator.vibrate) navigator.vibrate(pat); }catch(e){}
+ try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)();
+  const o=audio.createOscillator(), g=audio.createGain();
+  o.frequency.value=freq||880; o.connect(g); g.connect(audio.destination);
+  g.gain.setValueAtTime(.4,audio.currentTime); o.start(); o.stop(audio.currentTime+.2);
+ }catch(e){}
+}
+
+// ===================== TIMER (fullscreen, comum) =====================
+let seq=[], idx=0, left=0, tI=null;
+const REST_C='#141a22', PREP_C='#8a6d1a', ON_C='#1f7a4a';
+function runSeq(q){ if(tI) clearInterval(tI);
+ seq=q; idx=0; left=q[0].s; $('v-timer').classList.remove('hide'); paint(); vib([150],880);
+ tI=setInterval(()=>{ left--;
+  if(left<=0){ idx++;
+   if(idx>=seq.length){ stopTimer(true); return; }
+   left=seq[idx].s; vib(seq[idx].v||[300],seq[idx].f||660);
+  } else if(left<=3) vib([40],1200);
+  paint();
+ },1000);
+}
+function paint(){ const p=seq[idx];
+ $('v-timer').style.background=p.c;
+ $('t-label').textContent=p.l;
+ $('t-time').textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+ $('t-set').textContent=p.set?('série '+p.set+'/'+p.tot):'';
+}
+function stopTimer(done){ if(tI){clearInterval(tI); tI=null;}
+ if(done) vib([300,120,300,120,600],523);
+ $('v-timer').classList.add('hide');
+}
+function startRest(s){ runSeq([{s,l:'descanso',c:REST_C,f:523}]); }
+function startDead(){ const q=[], n=fb.mode==='dead'?fb.sets:5;
+ for(let s=1;s<=n;s++){
+  q.push({s:5,l:'prepare-se',c:PREP_C,set:s,tot:n,f:880});
+  q.push({s:10,l:'PENDURA!',c:ON_C,set:s,tot:n,v:[400],f:523});
+  if(s<n) q.push({s:120,l:'descanso',c:REST_C,set:s,tot:n,v:[500],f:440});
+ } runSeq(q);
+}
+function startRep(){ const q=[], n=fb.mode==='rep'?fb.sets:3;
+ for(let s=1;s<=n;s++){
+  q.push({s:5,l:'prepare-se',c:PREP_C,set:s,tot:n,f:880});
+  for(let rr=1;rr<=6;rr++){
+   q.push({s:7,l:'PENDURA '+rr+'/6',c:ON_C,set:s,tot:n,v:[300],f:523});
+   if(rr<6) q.push({s:3,l:'solta',c:PREP_C,set:s,tot:n,v:[150],f:880});
+  }
+  if(s<n) q.push({s:180,l:'descanso',c:REST_C,set:s,tot:n,v:[500],f:440});
+ } runSeq(q);
+}
+
+// ===================== INIT =====================
+function restoreDraft(){
+ let d=null; try{ d=JSON.parse(localStorage.getItem(LSD)||'null'); }catch(e){}
+ if(!d || d.date!==HOJE){ clearDraft(); return false; }
+ cur=Object.assign({dia:null,rpe:null,dor:null,checks:{},cargas:{}}, d.cur);
+ esc=Object.assign({dedos:null,rpe:null}, d.esc);
+ $('obs').value=d.obs||'';
+ if(d.ef){ $('e-local').value=d.ef.local||''; $('e-vias').value=d.ef.vias||''; $('e-graus').value=d.ef.graus||''; $('e-obs').value=d.ef.obs||''; }
+ if(cur.dia) selDia(cur.dia,true);
+ markRpe($('rpesel'),cur.rpe); if(cur.dor) setDor(cur.dor);
+ markRpe($('e-rpe'),esc.rpe); markRpe($('e-dedos'),esc.dedos);
+ return !!cur.dia;
+}
+['obs','e-local','e-vias','e-graus','e-obs'].forEach(i=>$(i).addEventListener('input',saveDraft));
+if(!restoreDraft()){ if(sugDia) selDia(sugDia); else $('fbcard').classList.add('hide'); }
+if(AGOSTO && (dow===0||dow===6)) tab('escalada');
+applyMode(detectMode());
+setBadge(SYNC_ON()?'off':'local');
+syncAll(false);
+if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
+</script>
+</body>
+</html>
