@@ -1,6 +1,6 @@
 // Service worker — cache para funcionar offline.
 // Ao atualizar o app, aumente a versão abaixo para forçar a atualização do cache.
-const CACHE = 'escalada-v2';
+const CACHE = 'escalada-v3';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -13,6 +13,8 @@ self.addEventListener('activate', e => {
   );
 });
 self.addEventListener('fetch', e => {
+  // só GET pode ir para o cache (cache.put com POST/DELETE lança erro)
+  if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   // chamadas à nuvem (Supabase) sempre vão direto à rede
   if (url.origin !== location.origin) return;

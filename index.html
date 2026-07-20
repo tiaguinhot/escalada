@@ -427,14 +427,18 @@ function setBadge(st){
  if(w) w.textContent = n?('· '+n+'⏳'):'';
 }
 function addReg(r){ r.lid=Date.now()+''+Math.floor(Math.random()*1e4); db.log.push(r); save(); setBadge(SYNC_ON()?'off':'local'); syncAll(false); }
-async function delReg(i){
+async function delReg(key){
+ // exclusão por identificador (id remoto ou lid local) — imune a mudanças de índice durante sync
+ const find=()=>db.log.findIndex(x=>String(x.id??x.lid)===String(key));
+ if(find()<0) return;
  if(!confirm('Excluir este registro?')) return;
- const r=db.log[i];
+ const r=db.log[find()];
  if(r.id && SYNC_ON()){
   try{ const res=await fetch(rest()+'?id=eq.'+r.id,{method:'DELETE',headers:sbHeaders()}); if(!res.ok) throw 0; }
   catch(e){ alert('Sem conexão — não foi possível excluir da nuvem agora. Tente de novo online.'); return; }
  }
- db.log.splice(i,1); save(); renderHist(); setBadge(SYNC_ON()?'ok':'local');
+ const i=find(); if(i>=0) db.log.splice(i,1);
+ save(); renderHist(); setBadge(SYNC_ON()?'ok':'local');
 }
 
 // ===================== MODO (phone / watch) =====================
@@ -574,12 +578,13 @@ function renderHist(){
   const i=db.log.length-1-ri;
   const cloud=r.id?'☁':'⏳';
   const d=document.createElement('div'); d.className='hist';
+  const key=String(r.id??r.lid).replace(/[^0-9a-zA-Z]/g,'');
   if(r.t==='treino'){
-   d.innerHTML='<button class="del" onclick="delReg('+i+')">excluir</button><div class="h1"><span class="cloud">'+cloud+'</span> '+fmt(r.data)+' — Dia '+r.dia+(r.semana?' (semana '+r.semana+')':'')+(r.src==='watch'?' ⌚':'')+'</div>'+
+   d.innerHTML='<button class="del" onclick="delReg(\''+key+'\')">excluir</button><div class="h1"><span class="cloud">'+cloud+'</span> '+fmt(r.data)+' — Dia '+r.dia+(r.semana?' (semana '+r.semana+')':'')+(r.src==='watch'?' ⌚':'')+'</div>'+
     '<div class="h2">'+(r.feitos?r.feitos.length+'/'+r.total+' exercícios · ':'')+'RPE '+(r.rpe??'—')+' · Dor: '+(r.dor??'—')+
     (r.fb?'\nFingerboard: '+r.fb:'')+(r.obs?'\n'+r.obs:'')+'</div>';
   }else{
-   d.innerHTML='<button class="del" onclick="delReg('+i+')">excluir</button><div class="h1"><span class="cloud">'+cloud+'</span> '+fmt(r.data)+' — Escalada 🧗 '+(r.local||'')+(r.src==='watch'?' ⌚':'')+'</div>'+
+   d.innerHTML='<button class="del" onclick="delReg(\''+key+'\')">excluir</button><div class="h1"><span class="cloud">'+cloud+'</span> '+fmt(r.data)+' — Escalada 🧗 '+(r.local||'')+(r.src==='watch'?' ⌚':'')+'</div>'+
     '<div class="h2">'+(r.vias||'?')+' vias · graus: '+(r.graus||'—')+' · dedos '+(r.dedos??'—')+'/5 · RPE '+(r.rpe??'—')+(r.obs?'\n'+r.obs:'')+'</div>';
   }
   el.appendChild(d);
@@ -600,7 +605,7 @@ function copiar(){
 function baixarCSV(){
  let csv='tipo,data,dia,semana,rpe,dor_dedos,vias,graus,dedos,local,obs\n';
  db.log.forEach(r=>{ const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
-  csv+= [r.t,r.data,r.dia||'',r.semana||'',r.rpe||'',r.dor||'',r.vias||'',r.graus||'',r.dedos||'',r.local||'',q(r.obs||'')].join(',')+'\n'; });
+  csv+= [r.t,r.data,r.dia||'',r.semana||'',r.rpe||'',r.dor||'',r.vias||'',q(r.graus||''),r.dedos||'',q(r.local||''),q(r.obs||'')].join(',')+'\n'; });
  const a=document.createElement('a');
  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='treinos_escalada.csv'; a.click();
 }
@@ -648,8 +653,13 @@ function vib(pat,freq){
 // ===================== TIMER (fullscreen, comum) =====================
 let seq=[], idx=0, left=0, tI=null;
 const REST_C='#141a22', PREP_C='#8a6d1a', ON_C='#1f7a4a';
+// Wake Lock: mantém a tela acesa durante o timer (importante no relógio)
+let wl=null;
+async function wlOn(){ try{ if('wakeLock' in navigator) wl=await navigator.wakeLock.request('screen'); }catch(e){} }
+function wlOff(){ try{ if(wl) wl.release(); }catch(e){} wl=null; }
+document.addEventListener('visibilitychange',()=>{ if(tI && document.visibilityState==='visible') wlOn(); });
 function runSeq(q){ if(tI) clearInterval(tI);
- seq=q; idx=0; left=q[0].s; $('v-timer').classList.remove('hide'); paint(); vib([150],880);
+ seq=q; idx=0; left=q[0].s; $('v-timer').classList.remove('hide'); paint(); vib([150],880); wlOn();
  tI=setInterval(()=>{ left--;
   if(left<=0){ idx++;
    if(idx>=seq.length){ stopTimer(true); return; }
@@ -666,6 +676,7 @@ function paint(){ const p=seq[idx];
 }
 function stopTimer(done){ if(tI){clearInterval(tI); tI=null;}
  if(done) vib([300,120,300,120,600],523);
+ wlOff();
  $('v-timer').classList.add('hide');
 }
 function startRest(s){ runSeq([{s,l:'descanso',c:REST_C,f:523}]); }
