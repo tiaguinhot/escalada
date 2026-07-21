@@ -64,6 +64,18 @@ textarea.big{min-height:64px; resize:vertical}
 .hist .cloud{font-size:11px}
 .prog{height:6px; background:var(--card2); border-radius:3px; margin-top:8px; overflow:hidden}
 .prog div{height:100%; background:var(--accent2); transition:width .3s}
+/* agenda */
+.ag{display:flex; align-items:baseline; gap:8px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px}
+.ag:last-child{border-bottom:none}
+.ag .d1{color:var(--muted); min-width:76px; white-space:nowrap}
+.ag .d2{flex:1}
+.ag .d2 b{font-size:13.5px}
+.ag .st{min-width:20px; text-align:right}
+.ag.today{background:var(--card2); border-radius:8px; padding:7px 8px; border:1px solid var(--accent)}
+.ag.today .d1{color:var(--accent); font-weight:700}
+.ag .ok2{color:var(--accent2); font-weight:700}
+.ag .miss{color:var(--muted)}
+.ag.rest .d2{color:var(--muted)}
 /* ============ MODO WATCH ============ */
 body.watch{font-size:4.5vw}
 body.watch .wrap{min-height:100vh; padding:12vw 10vw 16vw; display:flex; flex-direction:column; text-align:center}
@@ -89,6 +101,16 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
 #t-label{font-size:min(8vw,34px); font-weight:800; text-transform:uppercase; letter-spacing:.05em}
 #t-time{font-size:min(24vw,110px); font-weight:800; font-variant-numeric:tabular-nums; line-height:1.1}
 #t-stop{margin-top:3vh; width:min(60vw,240px); background:rgba(0,0,0,.35); color:#fff; border:none; border-radius:min(6vw,20px); font-size:min(6vw,20px); font-weight:700; padding:min(5vw,16px); cursor:pointer; font-family:inherit}
+/* ============ CONFIG DO TIMER (séries × tempo / intervalo) ============ */
+#v-tcfg{position:fixed; inset:0; z-index:49; background:var(--bg); display:flex; flex-direction:column; justify-content:center; align-items:center; gap:min(2.2vh,14px); padding:4vw; text-align:center}
+#tc-title{font-size:min(5vw,17px); color:var(--muted); font-weight:700; max-width:90vw; line-height:1.3}
+.tcrow{display:flex; align-items:center; gap:min(3vw,12px)}
+.tcrow .lb{width:min(23vw,100px); text-align:right; color:var(--muted); font-size:min(4.3vw,14px); font-weight:600}
+.tcrow button{width:min(14vw,52px); height:min(14vw,52px); border-radius:50%; border:none; background:var(--card); color:var(--text); font-size:min(7vw,26px); font-weight:800; cursor:pointer; flex-shrink:0}
+.tcrow .val{min-width:min(24vw,96px); text-align:center; font-size:min(7.5vw,28px); font-weight:800; font-variant-numeric:tabular-nums}
+#tc-go{width:min(70vw,280px); background:var(--accent2); color:#fff; border:none; border-radius:min(6vw,16px); font-size:min(6vw,19px); font-weight:800; padding:min(4.5vw,15px); cursor:pointer; font-family:inherit; margin-top:min(1.5vh,10px)}
+#tc-x{width:min(70vw,280px); background:var(--card); color:var(--muted); border:none; border-radius:min(6vw,16px); font-size:min(5vw,15px); font-weight:700; padding:min(3.5vw,12px); cursor:pointer; font-family:inherit}
+#tc-total{color:var(--muted); font-size:min(4.2vw,13px)}
 </style>
 </head>
 <body>
@@ -99,6 +121,17 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
   <div id="t-label"></div>
   <div id="t-time"></div>
   <button id="t-stop" onclick="stopTimer(false)">Parar</button>
+</div>
+
+<!-- ==================== CONFIG DO TIMER (comum) ==================== -->
+<div id="v-tcfg" class="hide">
+  <div id="tc-title"></div>
+  <div class="tcrow"><span class="lb">Séries</span><button onclick="tAdj('sets',-1)">−</button><span class="val" id="tc-sets"></span><button onclick="tAdj('sets',1)">+</button></div>
+  <div class="tcrow"><span class="lb">Exercício</span><button onclick="tAdj('work',-1)">−</button><span class="val" id="tc-work"></span><button onclick="tAdj('work',1)">+</button></div>
+  <div class="tcrow"><span class="lb">Intervalo</span><button onclick="tAdj('rest',-1)">−</button><span class="val" id="tc-rest"></span><button onclick="tAdj('rest',1)">+</button></div>
+  <div id="tc-total"></div>
+  <button id="tc-go" onclick="startCfg()">▶ Iniciar</button>
+  <button id="tc-x" onclick="closeTcfg()">Cancelar</button>
 </div>
 
 <!-- ==================== MODO CELULAR ==================== -->
@@ -116,6 +149,7 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
   <div class="tab on" data-v="treino" onclick="tab('treino')">Treino</div>
   <div class="tab" data-v="escalada" onclick="tab('escalada')">Escalada</div>
   <div class="tab" data-v="hist" onclick="tab('hist')">Histórico</div>
+  <div class="tab" data-v="agenda" onclick="tab('agenda')">Agenda</div>
   <div class="tab" data-v="plano" onclick="tab('plano')">Plano</div>
 </div>
 
@@ -155,10 +189,11 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
     <button class="btn" onclick="salvarTreino()">✓ Salvar treino</button>
   </div>
   <div class="card">
-    <h2>Timers de descanso</h2>
+    <h2>Timers</h2>
     <div class="chips">
       <div class="chip" onclick="startRest(120)">Descanso 2 min</div>
       <div class="chip" onclick="startRest(180)">Descanso 3 min</div>
+      <div class="chip" onclick="openCustom()">⏱ Personalizado (séries × tempo / intervalo)</div>
     </div>
   </div>
 </section>
@@ -202,6 +237,10 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
   </div>
 </section>
 
+<section id="v-agenda" class="hide">
+  <div id="agendalist"></div>
+</section>
+
 <section id="v-plano" class="hide">
   <div class="card"><h2>Visão geral</h2><div class="note">
     <b>Preparação:</b> 13/07 a 07/08 — 5 treinos/semana:<br>
@@ -241,7 +280,9 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
     <button class="wbtn go" onclick="startRep()">▶ Repeaters 7/3</button>
     <button class="wbtn" onclick="startRest(120)">Descanso 2 min</button>
     <button class="wbtn" onclick="startRest(180)">Descanso 3 min</button>
+    <button class="wbtn" onclick="openCustom()">⏱ Timer personalizado</button>
     <button class="wbtn orange" onclick="regStart()">✏ Registrar</button>
+    <button class="wbtn small" onclick="renderWPlano();wshow('w-plano')">📋 Plano completo</button>
     <button class="wbtn small" onclick="wshow('w-hist');renderWHist()">Registros <span id="w-sync"></span></button>
     <div class="note" id="w-fbinfo"></div>
     <button class="wbtn small" onclick="setMode('phone')">📱 modo celular</button>
@@ -288,6 +329,12 @@ body.watch .note{font-size:4.2vw; color:var(--muted); line-height:1.4; margin:2v
     <button class="wbtn" onclick="wshow('w-home')">OK</button>
   </div>
 
+  <div class="wrap hide" id="w-plano">
+    <h1>Plano</h1>
+    <div id="w-planolist" class="note" style="text-align:left"></div>
+    <button class="wbtn small" onclick="wshow('w-home')">← voltar</button>
+  </div>
+
   <div class="wrap hide" id="w-hist">
     <h1>Registros</h1>
     <div id="w-histlist" class="note" style="text-align:left"></div>
@@ -324,7 +371,8 @@ const sapaT = (SEM<=2 && !AGOSTO) ? 600 : 900;   // sapatilha: 10 → 15 min
 const sapaLbl = (sapaT===600?'10 min':'15 min');
 const suspT = (SEM>=3 || AGOSTO) ? 45 : 30;      // suspensão na barra
 
-// exercício: [nome, dose, obs, campoKg, timerSegundos?]
+// exercício: [nome, dose, obs, campoKg, tempoSeg?, séries?, intervaloSeg?]
+// tocar no ▶ abre a config (séries × tempo / intervalo) pré-preenchida e roda o ciclo completo
 const WORKOUTS = {
  A:{nome:'Dia A — Academia: força geral + antagonistas', ex:[
    ['Aquecimento (esteira/bike + mobilidade)','10 min','Obrigatório',0,600],
@@ -336,11 +384,11 @@ const WORKOUTS = {
    ['Remada baixa','3 × 10','',1],
    ['Extensão de punho com halter leve','3 × 15','Prevenção de epicondilite',1],
    ['Rotação externa de ombro (elástico)','3 × 15','Saúde do manguito',0],
-   ['Prancha','3 × 30-45 s','Use o timer ▶ por série',0,40]]},
+   ['Prancha','3 × 30-45 s','Timer ▶ roda as 3 séries com intervalo',0,40,3,60]]},
  D:{nome:'Dia D — Casa: aeróbico + core + mobilidade', ex:[
    ['Aeróbico (caminhada/bike/esteira)','30-40 min','Ritmo confortável — dá pra conversar',0,2100],
-   ['Hollow body','3 × 20-30 s','Timer ▶ por série',0,30],
-   ['Prancha lateral','3 × 20-30 s/lado','Timer ▶ por lado',0,30],
+   ['Hollow body','3 × 20-30 s','Timer ▶ roda as séries com intervalo',0,30,3,45],
+   ['Prancha lateral','3 × 20-30 s/lado','Alterne o lado a cada série (ajuste p/ 6 séries se quiser)',0,30,3,45],
    ['Superman','3 × 15','Lombar',0],
    ['Adaptação da sapatilha',''+sapaLbl,'Usar durante a mobilidade · dormência/dor aguda = tirar',0,sapaT],
    ['Mobilidade de quadril e ombro','10 min','',0,600]]},
@@ -354,7 +402,7 @@ const WORKOUTS = {
    ['Extensão de punho com halter leve','3 × 15','Prevenção de epicondilite',1],
    ['Rotação externa de ombro (elástico)','3 × 15','Saúde do manguito',0],
    ['Panturrilha em pé (leve)','3 × 15','Peso corporal',0],
-   ['Isometria na ponta do pé (degrau)','3 × 30-45 s','Simula apoio pequeno · 1 perna quando fácil',0,40],
+   ['Isometria na ponta do pé (degrau)','3 × 30-45 s','Simula apoio pequeno · 1 perna quando fácil',0,40,3,60],
    ['Adaptação da sapatilha',''+sapaLbl,'Dormência/dor aguda = tirar',0,sapaT],
    ['Aeróbico leve','20-30 min','Opcional, conforme disposição',0,1500]]},
  C:{nome:'Dia C — Tração, resistência e mobilidade', ex:[
@@ -364,7 +412,7 @@ const WORKOUTS = {
    ['Flexão de braço','3 × 10-15','',0],
    ['Afundo','3 × 10/perna','Pernas fortes poupam os braços na via',1],
    ['Panturrilha sentado (sóleo)','3 × 15-20','Joelho flexionado — segura o apoio pequeno',1],
-   ['Suspensão na barra (tempo)','3 × '+suspT+' s','Pegada aberta',0,suspT],
+   ['Suspensão na barra (tempo)','3 × '+suspT+' s','Pegada aberta',0,suspT,3,120],
    ['Mobilidade de quadril e ombro','10 min','Essencial para escalada',0,600]]}
 };
 // Fingerboard GoUp: sem regletes ≥30mm → sem.2 usa reglete 27mm, sem.3-4 reglete 20mm
@@ -464,8 +512,8 @@ function saveDraft(){ try{ localStorage.setItem(LSD, JSON.stringify({date:HOJE, 
 function clearDraft(){ localStorage.removeItem(LSD); }
 
 function tab(v){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
- ['treino','escalada','hist','plano'].forEach(s=>$('v-'+s).classList.toggle('hide',s!==v));
- if(v==='hist') renderHist(); }
+ ['treino','escalada','hist','agenda','plano'].forEach(s=>$('v-'+s).classList.toggle('hide',s!==v));
+ if(v==='hist') renderHist(); if(v==='agenda') renderAgenda(); }
 
 $('hdate').textContent = hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
 $('hfase').textContent = FASE;
@@ -505,7 +553,7 @@ function selDia(d,keep){ cur.dia=d; if(!keep){ cur.checks={}; cur.cargas={}; }
  renderEx(); saveDraft(); }
 function fmtDur(s){ return s<90 ? s+' s' : Math.round(s/60)+' min'; }
 function startEx(d,i){ const e=WORKOUTS[d].ex[i];
- runSeq([{s:5,l:'prepare-se',c:PREP_C,f:880},{s:e[4],l:e[0].split('(')[0].trim().slice(0,20),c:ON_C,f:523}]); }
+ openTcfg(e[5]||1, e[4], e[6]||60, e[0].split('(')[0].trim().slice(0,18), e[0]); }
 function renderEx(){
  const w=WORKOUTS[cur.dia]; const el=$('exlist'); el.innerHTML='';
  w.ex.forEach((e,i)=>{
@@ -515,7 +563,7 @@ function renderEx(){
   row.innerHTML='<input type="checkbox"'+(ck?' checked':'')+' onchange="chk('+i+',this.checked)">'+
    '<div class="info"><div class="nm">'+e[0]+'</div><div class="dt">'+e[1]+'</div>'+
    (e[2]?'<div class="ob">'+e[2]+'</div>':'')+
-   (e[4]?'<div class="tmr" onclick="startEx(\''+cur.dia+'\','+i+')">▶ '+fmtDur(e[4])+'</div>':'')+
+   (e[4]?'<div class="tmr" onclick="startEx(\''+cur.dia+'\','+i+')">▶ '+((e[5]||1)>1?e[5]+' × '+fmtDur(e[4])+' · int. '+fmtDur(e[6]||60):fmtDur(e[4]))+'</div>':'')+
    '</div>'+
    (e[3]?'<input type="text" inputmode="decimal" placeholder="kg" value="'+cg+'" onchange="carga('+i+',this.value)">':'');
   el.appendChild(row);
@@ -567,6 +615,51 @@ function salvarEscalada(){
  document.querySelectorAll('#e-rpe button,#e-dedos button').forEach(b=>b.classList.remove('on'));
 }
 
+// ===================== AGENDA (planejamento completo) =====================
+// [dd,mm,código,extra?] — códigos: A/D/B/C/E treinos · DA descanso ativo · R descanso · ESC escalada
+const AG_DESC={A:'Dia A — Academia: força + antagonistas',D:'Dia D — Aeróbico + core + mobilidade',
+ B:'Dia B — Fingerboard + tração',C:'Dia C — Tração, resistência e mobilidade',
+ E:'Dia E — Antagonistas leves + panturrilhas',DA:'Descanso ativo (caminhada/alongamento)',
+ R:'Descanso',ESC:'Escalada 🧗'};
+const AGENDA=[
+ {t:'Semana 1 · 13-19/07 (atípica: 3 seguidos + E na sexta)',d:[
+  [13,7,'A'],[14,7,'B'],[15,7,'C'],[16,7,'R'],[17,7,'E','antecipado do sábado'],[18,7,'R','Dia D não realizado'],[19,7,'R']]},
+ {t:'Semana 2 · 20-26/07 (Fase 1 · cargas +5-10%)',d:[
+  [20,7,'A'],[21,7,'D'],[22,7,'B','FB: reglete 27 mm'],[23,7,'DA'],[24,7,'C'],[25,7,'E'],[26,7,'R']]},
+ {t:'Semana 3 · 27/07-02/08 (Fase 2 · construção)',d:[
+  [27,7,'A'],[28,7,'D'],[29,7,'B','FB: reglete 20 mm'],[30,7,'DA'],[31,7,'C','suspensão 45 s'],[1,8,'E'],[2,8,'R']]},
+ {t:'Semana 4 · 03-09/08 (véspera do retorno)',d:[
+  [3,8,'A'],[4,8,'D'],[5,8,'B','FB: repeaters 7/3'],[6,8,'DA'],[7,8,'C','volume reduzido (~metade)'],[8,8,'ESC','1ª escalada! 6-8 vias fáceis'],[9,8,'R']]},
+];
+const AG_MES='<div class="card"><h2>Agosto — mês do retorno</h2><div class="note">'+
+ 'Semana-tipo (a partir de 10/08):<br>'+
+ 'seg <b>A</b> (academia, manutenção) · ter <b>D</b> · qua <b>B</b> (fingerboard — principal estímulo de dedos) · qui <b>descanso ativo</b> · sex <b>C reduzido ou descanso ativo</b> (conforme fadiga) · <b>sáb ou dom: escalada 🧗</b> · outro dia do fds: descanso.<br><br>'+
+ '<b>Escaladas previstas:</b> 08/08 · 15/08 · 22/08 · 29/08 (sáb ou dom)<br>'+
+ '<b>Fingerboard manutenção (quartas):</b> 12/08 · 19/08 · 26/08 — repeaters leves 7/3, reglete 20-27 mm<br><br>'+
+ 'Progressão na parede: 1ªs sessões 2-4 graus abaixo do máximo antigo, agarras grandes, top rope à vontade; depois, meio grau por vez — sem compensar com volume.</div></div>';
+function agRow(dd,mm,code,extra){
+ const iso='2026-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
+ const dt=new Date(2026,mm-1,dd);
+ const wd=['dom','seg','ter','qua','qui','sex','sáb'][dt.getDay()];
+ const reg=db.log.find(r=>r.data===iso);
+ const isToday=iso===HOJE, past=iso<HOJE, treino=!['R','DA'].includes(code);
+ let st='';
+ if(reg) st='<span class="ok2">✓'+(reg.t==='escalada'?' 🧗':(reg.dia&&reg.dia!==code?' '+reg.dia:''))+'</span>';
+ else if(past&&treino) st='<span class="miss">—</span>';
+ return '<div class="ag'+(isToday?' today':'')+(treino?'':' rest')+'">'+
+  '<span class="d1">'+wd+' '+String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'</span>'+
+  '<span class="d2"><b>'+AG_DESC[code]+'</b>'+(extra?'<br><span style="color:var(--muted);font-size:12px">'+extra+'</span>':'')+'</span>'+
+  '<span class="st">'+st+'</span></div>';
+}
+function renderAgenda(){
+ let h='';
+ AGENDA.forEach(w=>{ h+='<div class="card"><h2 style="font-size:14.5px">'+w.t+'</h2>'+
+  w.d.map(x=>agRow(x[0],x[1],x[2],x[3])).join('')+'</div>'; });
+ h+=AG_MES;
+ h+='<div class="card"><div class="note">✓ = registrado no app · — = dia de treino passado sem registro · borda laranja = hoje.<br>Regra central: dedos e tração pesada só em B e C (48 h entre eles). Dor = cortar D e E primeiro.</div></div>';
+ $('agendalist').innerHTML=h;
+}
+
 // ===================== HISTÓRICO / EXPORT (celular) =====================
 function fmt(d){ const[y,m,dd]=(d||'').split('-'); return dd+'/'+m+'/'+y; }
 function renderHist(){
@@ -611,7 +704,7 @@ function baixarCSV(){
 }
 
 // ===================== TELAS WATCH =====================
-const WVIEWS=['w-home','w-tipo','w-vias','w-dedos','w-rpe','w-dor','w-ok','w-hist'];
+const WVIEWS=['w-home','w-tipo','w-vias','w-dedos','w-rpe','w-dor','w-ok','w-hist','w-plano'];
 function wshow(v){ WVIEWS.forEach(x=>$(x).classList.toggle('hide',x!==v)); window.scrollTo(0,0); }
 let r={};
 function regStart(){ r={data:HOJE}; wshow('w-tipo'); }
@@ -630,6 +723,22 @@ function wfim(){ r.src='watch'; addReg(r); vib([200,80,200],660);
   ? '⚠️ Dor registrada: regrida uma semana no fingerboard e avise o Claude.'
   : (r.t==='escalada'?'Boa escalada! 🧗':'Bom treino! 💪');
  wshow('w-ok');
+}
+function renderWPlano(){
+ const wd={A:'seg',D:'ter',B:'qua',C:'sex',E:'sáb'};
+ let h='<b style="color:var(--accent)">Hoje:</b> '+sug+'<br><br>';
+ h+='<b style="color:var(--accent)">Fingerboard</b><br>'+
+  [1,2,3,4].map(s=>'S'+s+': '+FB[s].p+' · '+FB[s].a).join('<br>')+
+  '<br>Ago: '+FB[5].p+'<br><br>';
+ ['A','D','B','C','E'].forEach(d=>{
+  const w=WORKOUTS[d];
+  h+='<b style="color:var(--accent)">'+wd[d]+' · '+w.nome+'</b><br>'+
+   w.ex.map(e=>'· '+e[0]+' — '+e[1]).join('<br>')+'<br><br>';
+ });
+ h+='<b style="color:var(--accent)">qui</b> descanso ativo · <b style="color:var(--accent)">dom</b> descanso<br><br>'+
+  'Agosto: escalada no fds substitui o E; sex (C) reduzido conforme fadiga.<br>'+
+  'Escaladas: 08 · 15 · 22 · 29/08 — FB manutenção: quartas 12 · 19 · 26/08.';
+ $('w-planolist').innerHTML=h;
 }
 function renderWHist(){ const el=$('w-histlist');
  if(!db.log.length){ el.textContent='Nenhum registro ainda.'; return; }
@@ -680,6 +789,47 @@ function stopTimer(done){ if(tI){clearInterval(tI); tI=null;}
  $('v-timer').classList.add('hide');
 }
 function startRest(s){ runSeq([{s,l:'descanso',c:REST_C,f:523}]); }
+
+// ---- Config do timer: séries × tempo de exercício / intervalo ----
+let tcfg={sets:3, work:30, rest:60, label:'exercício', custom:false};
+function fmtT(s){ return s>=60 ? Math.floor(s/60)+':'+String(s%60).padStart(2,'0') : s+' s'; }
+function stepFor(v){ return v<60 ? 5 : v<300 ? 15 : 60; }
+function tAdj(f,dir){
+ if(f==='sets') tcfg.sets=Math.max(1,Math.min(15,tcfg.sets+dir));
+ else{
+  const st=stepFor(dir<0 ? tcfg[f]-1 : tcfg[f]);
+  const min=f==='work'?5:0;
+  tcfg[f]=Math.max(min,Math.min(3600, tcfg[f]+dir*st));
+ }
+ paintTcfg();
+}
+function paintTcfg(){
+ $('tc-sets').textContent=tcfg.sets; $('tc-work').textContent=fmtT(tcfg.work); $('tc-rest').textContent=fmtT(tcfg.rest);
+ const tot=tcfg.sets*(5+tcfg.work)+Math.max(0,tcfg.sets-1)*tcfg.rest;
+ $('tc-total').textContent='Total: ~'+fmtT(tot)+' (com 5 s de preparo por série)';
+}
+function openTcfg(sets,work,rest,label,title,custom){
+ tcfg={sets:sets||1, work:work||30, rest:rest||60, label:label||'exercício', custom:!!custom};
+ $('tc-title').textContent=title||'Cronômetro';
+ paintTcfg(); $('v-tcfg').classList.remove('hide');
+}
+function closeTcfg(){ $('v-tcfg').classList.add('hide'); }
+function openCustom(){
+ let c=null; try{ c=JSON.parse(localStorage.getItem('tcfg2')||'null'); }catch(e){}
+ c=c||{sets:3,work:30,rest:60};
+ openTcfg(c.sets,c.work,c.rest,'exercício','⏱ Cronômetro personalizado',true);
+}
+function startCfg(){
+ closeTcfg();
+ if(tcfg.custom) try{ localStorage.setItem('tcfg2',JSON.stringify({sets:tcfg.sets,work:tcfg.work,rest:tcfg.rest})); }catch(e){}
+ const q=[], n=tcfg.sets;
+ for(let s=1;s<=n;s++){
+  q.push({s:5,l:'prepare-se',c:PREP_C,set:s,tot:n,f:880});
+  q.push({s:tcfg.work,l:tcfg.label,c:ON_C,set:s,tot:n,v:[400],f:523});
+  if(s<n && tcfg.rest>0) q.push({s:tcfg.rest,l:'descanso',c:REST_C,set:s,tot:n,v:[500],f:440});
+ }
+ runSeq(q);
+}
 function startDead(){ const q=[], n=fb.mode==='dead'?fb.sets:5;
  for(let s=1;s<=n;s++){
   q.push({s:5,l:'prepare-se',c:PREP_C,set:s,tot:n,f:880});

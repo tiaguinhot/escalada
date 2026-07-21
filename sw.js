@@ -1,6 +1,6 @@
 // Service worker — cache para funcionar offline.
 // Ao atualizar o app, aumente a versão abaixo para forçar a atualização do cache.
-const CACHE = 'escalada-v3';
+const CACHE = 'escalada-v5';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
